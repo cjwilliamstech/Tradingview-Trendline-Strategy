@@ -1,0 +1,35 @@
+//@version=6
+strategy("Trendline Strategy Example", overlay=true)
+
+// Input parameter for pivot detection
+pivotLen = input.int(5, title="Pivot Length", minval=1)
+
+// Detect swing highs and lows
+pivotHigh = ta.pivothigh(high, pivotLen, pivotLen)
+pivotLow  = ta.pivotlow(low, pivotLen, pivotLen)
+
+// Plot pivot points for visualization
+plotshape(not na(pivotHigh), title="Swing High", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.tiny)
+plotshape(not na(pivotLow), title="Swing Low", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.tiny)
+
+// Initialize dummy trendlines
+var upTrendLine = line.new(0, 0, 0, 0, extend=extend.right, color=color.green)
+var downTrendLine = line.new(0, 0, 0, 0, extend=extend.right, color=color.red)
+
+// Update trendlines when a pivot low is detected
+if not na(pivotLow)
+    line.set_xy1(upTrendLine, bar_index - pivotLen, pivotLow)
+    line.set_xy2(upTrendLine, bar_index, low)
+
+// Update trendlines when a pivot high is detected
+if not na(pivotHigh)
+    line.set_xy1(downTrendLine, bar_index - pivotLen, pivotHigh)
+    line.set_xy2(downTrendLine, bar_index, high)
+
+// Simple trade rules:
+// - Enter long when a swing low is detected.
+// - Close the long position when a swing high is detected.
+if not na(pivotLow)
+    strategy.entry("Long", strategy.long)
+if not na(pivotHigh)
+    strategy.close("Long")
